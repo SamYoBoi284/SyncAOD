@@ -1,0 +1,12 @@
+package com.sam.syncaod;
+import android.app.*;import android.content.*;import android.os.*;import android.view.*;import android.widget.*;import android.graphics.Color;import androidx.core.view.WindowCompat;import java.text.SimpleDateFormat;import java.util.Date;import java.util.Locale;
+public class AodActivity extends Activity{
+ Handler h=new Handler(Looper.getMainLooper());TextView clock,date;
+ Runnable tick=new Runnable(){public void run(){if(clock!=null){Date d=new Date();clock.setText(new SimpleDateFormat("HH:mm",Locale.getDefault()).format(d));date.setText(new SimpleDateFormat("EEE, d MMM",Locale.getDefault()).format(d));h.postDelayed(this,1000);}}};
+ public void onCreate(Bundle b){super.onCreate(b);WindowCompat.setDecorFitsSystemWindows(getWindow(),false);getWindow().setStatusBarColor(Color.BLACK);getWindow().setNavigationBarColor(Color.BLACK);getWindow().getDecorView().setSystemUiVisibility(5894|1024|512);getWindow().setBackgroundDrawableResource(android.R.color.black);
+ LinearLayout root=new LinearLayout(this);root.setGravity(Gravity.CENTER);root.setOrientation(1);root.setBackgroundColor(Color.BLACK);root.setPadding(dp(18),dp(20),dp(18),dp(20));setContentView(root);
+ clock=new TextView(this);clock.setTextColor(0xffdee5f0);clock.setTextSize(66);clock.setGravity(Gravity.CENTER);root.addView(clock);date=new TextView(this);date.setTextColor(0xff8091ab);date.setTextSize(17);date.setGravity(Gravity.CENTER);root.addView(date);
+ TextView info=new TextView(this);info.setTextColor(0xff414e62);info.setTextSize(11);info.setGravity(Gravity.CENTER);info.setPadding(0,dp(34),0,0);info.setText("DOUBLE-TAP TO DISMISS • EXPERIMENTAL");root.addView(info);
+ GestureDetector gd=new GestureDetector(this,new GestureDetector.SimpleOnGestureListener(){public boolean onDoubleTap(MotionEvent e){sendBroadcast(new Intent(AodService.ACTION_DISMISS).setPackage(getPackageName()));finish();return true;}});root.setOnTouchListener((v,e)->gd.onTouchEvent(e));}
+ protected void onResume(){super.onResume();h.removeCallbacks(tick);h.post(tick);}protected void onPause(){h.removeCallbacks(tick);super.onPause();}protected void onDestroy(){h.removeCallbacks(tick);super.onDestroy();}int dp(float x){return(int)(x*getResources().getDisplayMetrics().density+.5f);}
+}

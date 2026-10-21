@@ -1,0 +1,12 @@
+package com.sam.syncaod;
+import android.Manifest;import android.app.*;import android.content.*;import android.content.pm.PackageManager;import android.os.*;import android.widget.*;import android.graphics.Color;import androidx.core.view.WindowCompat;
+public class MainActivity extends Activity{
+ public void onCreate(Bundle b){super.onCreate(b);WindowCompat.setDecorFitsSystemWindows(getWindow(),true);getWindow().setStatusBarColor(Color.BLACK);getWindow().setNavigationBarColor(Color.BLACK);LinearLayout root=new LinearLayout(this);root.setOrientation(1);root.setPadding(dp(22),dp(28),dp(22),dp(24));root.setBackgroundColor(0xff08090c);setContentView(root);
+ root.addView(txt("SYNC / AMBIENT DISPLAY",12,0xffff705c));TextView title=txt("Sync AOD",34,Color.WHITE);title.setPadding(0,dp(8),0,dp(5));root.addView(title);root.addView(txt("Lock → ambient clock → double-tap dismiss → next lock.",15,Color.LTGRAY));
+ Button preview=btn("Preview black AOD screen");preview.setOnClickListener(v->{Intent i=new Intent(this,AodActivity.class);i.putExtra("preview",true);startActivity(i);});root.addView(preview);
+ Button start=btn("Start lifecycle experiment");start.setOnClickListener(v->{Intent i=new Intent(this,AodService.class);if(Build.VERSION.SDK_INT>=26)startForegroundService(i);else startService(i);});root.addView(start);
+ Button stop=btn("Stop experiment");stop.setOnClickListener(v->stopService(new Intent(this,AodService.class)));root.addView(stop);
+ TextView warning=txt("Android/Samsung may block background activity launches while the display is off. This prototype logs the attempt; it does not bypass secure unlock or claim guaranteed AOD behavior.",14,0xffffbe84);warning.setPadding(0,dp(20),0,0);root.addView(warning);
+ if(Build.VERSION.SDK_INT>=33&&checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)!=PackageManager.PERMISSION_GRANTED)requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS},8);}
+ TextView txt(String s,int z,int c){TextView t=new TextView(this);t.setText(s);t.setTextSize(z);t.setTextColor(c);return t;}Button btn(String s){Button b=new Button(this);b.setText(s);b.setAllCaps(false);return b;}int dp(float x){return(int)(x*getResources().getDisplayMetrics().density+.5f);}
+}
