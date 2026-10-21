@@ -1,0 +1,13 @@
+package com.sam.syncaod;
+import android.app.*;import android.content.*;import android.content.pm.ServiceInfo;import android.os.*;import android.util.Log;
+public class AodService extends Service{
+ public static final String ACTION_DISMISS="com.sam.syncaod.ACTION_DISMISS";static final String TAG="SyncAODLifecycle",CHANNEL="sync_aod_lifecycle";boolean dismissed=false;BroadcastReceiver receiver;
+ public void onCreate(){super.onCreate();createChannel();Intent open=new Intent(this,MainActivity.class);PendingIntent pi=PendingIntent.getActivity(this,1,open,PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
+ Notification n=new Notification.Builder(this,CHANNEL).setSmallIcon(android.R.drawable.ic_lock_idle_alarm).setContentTitle("Sync AOD experiment running").setContentText("Testing lock-screen lifecycle; tap to open controls.").setContentIntent(pi).setOngoing(true).build();
+ if(Build.VERSION.SDK_INT>=34)startForeground(11,n,ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);else startForeground(11,n);
+ receiver=new BroadcastReceiver(){public void onReceive(Context c,Intent i){String a=i.getAction();Log.i(TAG,"Received "+a+" dismissed="+dismissed);if(ACTION_DISMISS.equals(a)){dismissed=true;return;}if(Intent.ACTION_USER_PRESENT.equals(a)){dismissed=false;return;}if(Intent.ACTION_SCREEN_OFF.equals(a)&&!dismissed){Intent show=new Intent(AodService.this,AodActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_SINGLE_TOP);try{startActivity(show);Log.i(TAG,"AOD launch requested; Android may block it.");}catch(RuntimeException e){Log.e(TAG,"OS rejected AOD launch",e);}}}};
+ IntentFilter f=new IntentFilter();f.addAction(Intent.ACTION_SCREEN_OFF);f.addAction(Intent.ACTION_USER_PRESENT);f.addAction(ACTION_DISMISS);if(Build.VERSION.SDK_INT>=33)registerReceiver(receiver,f,Context.RECEIVER_NOT_EXPORTED);else registerReceiver(receiver,f);Log.i(TAG,"Foreground lifecycle experiment started");}
+ public int onStartCommand(Intent i,int flags,int id){return START_STICKY;}
+ void createChannel(){if(Build.VERSION.SDK_INT>=26){NotificationChannel c=new NotificationChannel(CHANNEL,"Sync AOD experiment",NotificationManager.IMPORTANCE_LOW);((NotificationManager)getSystemService(NOTIFICATION_SERVICE)).createNotificationChannel(c);}}
+ public void onDestroy(){if(receiver!=null)try{unregisterReceiver(receiver);}catch(Exception ignored){}Log.i(TAG,"Experiment stopped");super.onDestroy();}public IBinder onBind(Intent i){return null;}
+}
